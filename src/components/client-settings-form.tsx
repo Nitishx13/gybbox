@@ -1,6 +1,19 @@
 "use client";
 import * as React from "react";
 
+type ClientDTO = {
+  name: string;
+  slug: string;
+  gmbPlaceId?: string | null;
+  gmbReviewUrl?: string | null;
+  websiteUrl?: string | null;
+  contactEmail?: string | null;
+};
+
+type ApiOk<T = unknown> = { ok: true } & T;
+type ApiErr = { ok: false; error: string };
+type ApiResult<T = unknown> = ApiOk<T> | ApiErr;
+
 export function ClientSettingsForm({ clientId }: { clientId: string }) {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -19,9 +32,9 @@ export function ClientSettingsForm({ clientId }: { clientId: string }) {
     setError(null);
     fetch(`/api/admin/client/${clientId}`)
       .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to load");
-        const c = data.client || {};
+        const data: ApiResult<{ client: ClientDTO }> = await res.json();
+        if (!res.ok || !data?.ok) throw new Error((data as ApiErr).error || "Failed to load");
+        const c = (data as ApiOk<{ client: ClientDTO }>).client || ({} as ClientDTO);
         setName(c.name || "");
         setSlug(c.slug || "");
         setGmbPlaceId(c.gmbPlaceId || "");
@@ -29,7 +42,10 @@ export function ClientSettingsForm({ clientId }: { clientId: string }) {
         setWebsiteUrl(c.websiteUrl || "");
         setContactEmail(c.contactEmail || "");
       })
-      .catch((e: any) => setError(e?.message || "Failed to load"))
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : String(e);
+        setError(message || "Failed to load");
+      })
       .finally(() => setLoading(false));
   }, [clientId]);
 
@@ -44,12 +60,13 @@ export function ClientSettingsForm({ clientId }: { clientId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, slug: slug.trim(), gmbPlaceId, gmbReviewUrl, websiteUrl, contactEmail }),
       });
-      const data = await res.json();
-      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to save");
+      const data: ApiResult<{ client: ClientDTO }> = await res.json();
+      if (!res.ok || !data?.ok) throw new Error((data as ApiErr).error || "Failed to save");
       setOk(true);
       setTimeout(() => setOk(false), 1200);
-    } catch (e: any) {
-      setError(e?.message || "Failed to save");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message || "Failed to save");
     } finally {
       setSaving(false);
     }

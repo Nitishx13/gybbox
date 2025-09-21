@@ -2,6 +2,10 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+type ApiOk<T = unknown> = { ok: true } & T;
+type ApiErr = { ok: false; error: string };
+type LoginResp = ApiOk<{ role: "ADMIN" | "CLIENT" }> | ApiErr;
+
 export default function LoginPage() {
   const router = useRouter();
   const search = useSearchParams();
@@ -20,13 +24,14 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "Login failed");
+      const data: LoginResp = await res.json();
+      if (!res.ok || !data.ok) throw new Error((data as ApiErr)?.error || "Login failed");
       const next = search.get("next");
       if (next) router.replace(next);
       else router.replace(data.role === "ADMIN" ? "/dashboard/admin" : "/dashboard/client");
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Login failed");
     } finally {
       setLoading(false);
     }

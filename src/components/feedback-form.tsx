@@ -11,6 +11,10 @@ export function FeedbackForm({ rating, clientSlug, onSubmitted }: { rating: numb
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  type ApiOk = { ok: true };
+  type ApiErr = { ok: false; error: string };
+  type ApiResult = ApiOk | ApiErr;
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -21,12 +25,18 @@ export function FeedbackForm({ rating, clientSlug, onSubmitted }: { rating: numb
       body: JSON.stringify({ clientSlug, rating, name, email, comments }),
     })
       .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to submit feedback");
+        let data: ApiResult;
+        try {
+          data = await res.json();
+        } catch {
+          data = { ok: false, error: "Invalid JSON" };
+        }
+        if (!res.ok || !data?.ok) throw new Error((data as ApiErr).error || "Failed to submit feedback");
         onSubmitted();
       })
-      .catch((err: any) => {
-        setError(err?.message || "Failed to submit feedback");
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message || "Failed to submit feedback");
       })
       .finally(() => setSubmitting(false));
   };
