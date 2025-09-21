@@ -6,7 +6,7 @@ type ApiOk<T = unknown> = { ok: true } & T;
 type ApiErr = { ok: false; error: string };
 type LoginResp = ApiOk<{ role: "ADMIN" | "CLIENT" }> | ApiErr;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
   const [email, setEmail] = React.useState("");
@@ -55,5 +55,13 @@ export default function LoginPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<main className="mx-auto max-w-md px-6 py-16"><div className="text-sm text-slate-500">Loading...</div></main>}>
+      <LoginForm />
+    </React.Suspense>
   );
 }

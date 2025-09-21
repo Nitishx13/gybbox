@@ -2,21 +2,23 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  const client = await prisma.client.findUnique({ where: { id: params.id } });
+  const { id } = await context.params;
+  const client = await prisma.client.findUnique({ where: { id } });
   if (!client) return Response.json({ ok: false, error: "Not found" }, { status: 404 });
   return Response.json({ ok: true, client } as any);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
+  const { id } = await context.params;
   const body = await req.json();
   const { name, slug, gmbPlaceId, gmbReviewUrl, websiteUrl, contactEmail } = body || {};
   try {
@@ -28,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (websiteUrl !== undefined) data.websiteUrl = websiteUrl;
     if (contactEmail !== undefined) data.contactEmail = contactEmail;
 
-    const updated = await (prisma as any).client.update({ where: { id: params.id }, data });
+    const updated = await (prisma as any).client.update({ where: { id }, data });
     return Response.json({ ok: true, client: updated });
   } catch (e: any) {
     if (e?.code === "P2002") {

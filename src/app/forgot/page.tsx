@@ -11,6 +11,10 @@ export default function ForgotPasswordPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [ok, setOk] = React.useState(false);
 
+  type ApiOk = { ok: true };
+  type ApiErr = { ok: false; error: string };
+  type ApiResult = ApiOk | ApiErr;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -22,12 +26,13 @@ export default function ForgotPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, newPassword, token }),
       });
-      const data = await res.json();
-      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to reset password");
+      const data: ApiResult = await res.json();
+      if (!res.ok || !data?.ok) throw new Error((data as ApiErr).error || "Failed to reset password");
       setOk(true);
       setTimeout(() => router.push(`/login?email=${encodeURIComponent(email)}`), 800);
-    } catch (e: any) {
-      setError(e?.message || "Failed to reset password");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -48,7 +53,7 @@ export default function ForgotPasswordPage() {
         <div className="grid gap-2">
           <label className="text-sm" htmlFor="token">Reset token</label>
           <input id="token" className="h-11 rounded-md border border-slate-300 px-3 dark:border-slate-700 dark:bg-slate-900" value={token} onChange={(e) => setToken(e.target.value)} required />
-          <p className="text-xs text-slate-500">Ask an admin for the reset token. It must match your server's SETUP_TOKEN.</p>
+          <p className="text-xs text-slate-500">Ask an admin for the reset token. It must match your server&#39;s SETUP_TOKEN.</p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {ok && <p className="text-sm text-green-600">Password reset successful. Redirecting to login...</p>}

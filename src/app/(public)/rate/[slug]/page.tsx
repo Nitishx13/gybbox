@@ -5,8 +5,9 @@ import { StarRating } from "@/components/star-rating";
 export default async function RateBySlugPage({ params }: { params: { slug: string } }) {
   const client = await prisma.client.findUnique({ where: { slug: params.slug } });
 
-  // Use any-cast to access fields added in a pending Prisma migration
-  const googleReviewUrl = (client as any)?.gmbReviewUrl || process.env.NEXT_PUBLIC_GMB_URL || "https://www.google.com/maps";
+  // Access field with a lightweight inline type for forward-compat with pending Prisma migration
+  type ClientWithGmb = { gmbReviewUrl?: string | null } | null;
+  const googleReviewUrl = (client as ClientWithGmb)?.gmbReviewUrl || process.env.NEXT_PUBLIC_GMB_URL || "https://www.google.com/maps";
 
   return (
     <main className="mx-auto max-w-2xl p-6">
