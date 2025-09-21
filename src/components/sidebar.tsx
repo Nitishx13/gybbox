@@ -23,6 +23,7 @@ export function Sidebar({ variant = "client" }: { variant?: Variant }) {
       <nav className="flex flex-col gap-2">
         <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client">Overview</Link>
         <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client/review-links">Review Links</Link>
+        <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client/feedback">Feedback</Link>
         <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client/templates">Templates</Link>
         <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client/users">Users</Link>
         <Link className="rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/dashboard/client/services">Services</Link>

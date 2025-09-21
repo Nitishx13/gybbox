@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
     let clientId: string | undefined;
     if (clientSlug) {
       const client = await prisma.client.findUnique({ where: { slug: clientSlug } });
-      if (!client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
-      clientId = client.id;
+      if (client) clientId = client.id;
+      // If not found, proceed without client; DB constraint will determine permissibility below
     }
 
     // Build data with conditional relation connect when clientId is available

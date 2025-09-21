@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { ReviewStatsCard } from "@/components/review-stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { ClientFeedbackQuickForm } from "@/components/client-feedback-quick-form";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,11 @@ export default async function ClientOverviewPage() {
               <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">🔗</div>
               <div className="font-medium">Create review link</div>
               <div className="text-xs text-slate-500">Shareable link or QR</div>
+            </Link>
+            <Link href="/dashboard/client/feedback" className="group rounded-lg border border-slate-200 bg-white p-4 text-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950">
+              <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">🗂️</div>
+              <div className="font-medium">Feedback list</div>
+              <div className="text-xs text-slate-500">With date filters</div>
             </Link>
             {client?.gmbReviewUrl ? (
               <a href={client.gmbReviewUrl as any} target="_blank" className="group rounded-lg border border-slate-200 bg-white p-4 text-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950">
@@ -153,6 +159,18 @@ export default async function ClientOverviewPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Quick add feedback */}
+      {client?.slug && (
+        <Card className="animate-fade-up">
+          <CardHeader>
+            <CardTitle>Quick add feedback</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ClientFeedbackQuickForm clientSlug={String(client.slug)} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

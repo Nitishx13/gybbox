@@ -11,6 +11,7 @@ export function StarRating({ googleReviewUrl, clientSlug }: { googleReviewUrl?: 
   const [rating, setRating] = React.useState<number | null>(null);
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
+  const [inlineWarning, setInlineWarning] = React.useState<string | null>(null);
 
   const handleRate = (value: number) => {
     setRating(value);
@@ -22,6 +23,12 @@ export function StarRating({ googleReviewUrl, clientSlug }: { googleReviewUrl?: 
         window.location.href = googleReviewUrl || DEFAULT_GOOGLE_REVIEW_URL;
       }, 600);
     } else {
+      // Enforce clientSlug presence for feedback submission when relation is required
+      if (!clientSlug) {
+        setInlineWarning("This feedback link is missing the client identifier. Please use a link with ?slug=your-client-slug or /rate/your-client-slug.");
+        return;
+      }
+      setInlineWarning(null);
       setOpen(true);
     }
   };
@@ -44,6 +51,11 @@ export function StarRating({ googleReviewUrl, clientSlug }: { googleReviewUrl?: 
           </Button>
         ))}
       </div>
+      {inlineWarning && (
+        <div className="w-full max-w-xl rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
+          {inlineWarning}
+        </div>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogHeader>
           <DialogTitle>Share your feedback</DialogTitle>
@@ -56,7 +68,8 @@ export function StarRating({ googleReviewUrl, clientSlug }: { googleReviewUrl?: 
             if (typeof window !== "undefined") {
               window.alert("Feedback submitted. Thank you!");
             }
-            router.push("/thanks");
+            const next = clientSlug ? `/thanks?slug=${encodeURIComponent(clientSlug)}` : "/thanks";
+            router.push(next);
           }}
         />
         <DialogFooter>
