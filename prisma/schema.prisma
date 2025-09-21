@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  // Google review configuration
+  gmbPlaceId   String?
+  gmbReviewUrl String?
+  // Optional client metadata
+  websiteUrl   String?
+  contactEmail String?
+  users     User[]
+  feedbacks Feedback[]
+  requests  ReviewRequest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  clientId     String?
+  client       Client?  @relation(fields: [clientId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Capture 1–4 star internal feedback submitted via public rate page
+model Feedback {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  rating    Int
+  name      String
+  email     String
+  comments  String
+  source    String   @default("web_rate_page")
+  createdAt DateTime @default(now())
+}
+
+// Track outbound review requests (optional enhancement)
+model ReviewRequest {
+  id             String   @id @default(cuid())
+  clientId       String
+  client         Client   @relation(fields: [clientId], references: [id])
+  recipientEmail String
+  channel        String   // "email" | "sms" | "qr"
+  status         String   // "sent" | "opened" | "reviewed" | "bounced"
+  createdAt      DateTime @default(now())
+}
